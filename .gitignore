@@ -1,0 +1,14 @@
+# Secrets & credentials
+credentials.json
+token.json
+secrets/
+
+# Output (generated at runtime)
+output/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
