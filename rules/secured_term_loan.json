@@ -1,0 +1,65 @@
+{
+  "deal_type": "secured_term_loan",
+  "categories": [
+    {
+      "name": "Entity / KYC",
+      "scope": "per_entity",
+      "docs": [
+        "Formation Certificate",
+        "Operating Agreement / LPA",
+        "Good Standing Certificate",
+        "W-9",
+        "Beneficial Ownership Certification"
+      ]
+    },
+    {
+      "name": "Third-Party Reports",
+      "scope": "per_asset",
+      "docs": [
+        "Appraisal",
+        "Property Condition Assessment",
+        "Phase I Environmental Site Assessment",
+        "Zoning Report",
+        "Title Commitment",
+        "Survey",
+        "Insurance Certificate"
+      ]
+    },
+    {
+      "name": "Security Documents",
+      "scope": "per_asset",
+      "docs": [
+        "Mortgage / Deed of Trust",
+        "UCC-1 Financing Statement"
+      ]
+    },
+    {
+      "name": "Loan Documents",
+      "scope": "per_deal",
+      "docs": [
+        "Loan Agreement",
+        "Promissory Note",
+        "Guaranty",
+        "Assignment of Leases and Rents",
+        "Interest Rate Cap Agreement",
+        "Closing Certificate",
+        "Legal Opinion"
+      ]
+    },
+    {
+      "name": "Underwriting — Asset",
+      "scope": "per_asset",
+      "docs": [
+        "Rent Roll",
+        "Operating Statement"
+      ]
+    },
+    {
+      "name": "Underwriting — Guarantor",
+      "scope": "per_guarantor",
+      "docs": [
+        "Guarantor Financial Statements"
+      ]
+    }
+  ]
+}

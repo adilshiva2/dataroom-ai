@@ -1,0 +1,61 @@
+{
+  "deal_type": "revolver",
+  "categories": [
+    {
+      "name": "Entity / KYC",
+      "scope": "per_entity",
+      "docs": [
+        "Formation Certificate",
+        "Operating Agreement / LPA",
+        "Good Standing Certificate",
+        "W-9",
+        "Beneficial Ownership Certification"
+      ]
+    },
+    {
+      "name": "Loan Documents",
+      "scope": "per_deal",
+      "docs": [
+        "Credit Agreement",
+        "Notes",
+        "Subsidiary Guaranties",
+        "Closing Certificate",
+        "Legal Opinion",
+        "Solvency Certificate",
+        "Officer's Certificate",
+        "Board Resolutions",
+        "Borrowing Base Certificate",
+        "Fee Letters",
+        "Deposit Account Control Agreements",
+        "LC Documentation"
+      ]
+    },
+    {
+      "name": "Financial Diligence",
+      "scope": "per_deal",
+      "docs": [
+        "Audited Financial Statements",
+        "Projections",
+        "Compliance Certificate"
+      ]
+    }
+  ],
+  "conditional": [
+    {
+      "condition": {
+        "facility_feature": "asset_based"
+      },
+      "categories": [
+        {
+          "name": "Asset-Based Collateral",
+          "scope": "per_deal",
+          "docs": [
+            "Field Exam Report",
+            "Collateral Schedules",
+            "UCC-1 Financing Statements"
+          ]
+        }
+      ]
+    }
+  ]
+}

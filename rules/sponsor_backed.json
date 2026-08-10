@@ -1,0 +1,19 @@
+{
+  "overlay": "sponsor_backed",
+  "condition": {
+    "sponsor_backed": true
+  },
+  "categories": [
+    {
+      "name": "Sponsor / Fund Documents",
+      "scope": "per_deal",
+      "docs": [
+        "Fund LPA",
+        "GP Formation Documents",
+        "Sponsor Guaranty",
+        "Guarantor Financial Statements",
+        "Structure / Org Chart"
+      ]
+    }
+  ]
+}
