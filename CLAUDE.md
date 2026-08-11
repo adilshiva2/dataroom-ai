@@ -12,7 +12,7 @@ NOTHING about the deal is hardcoded. The extraction step (T0) produces `deal_pro
 - **secured_term_loan** (real estate): per-entity KYC (formation cert, operating agreement/LPA, good standing, W-9, beneficial ownership); per-asset third-party reports (appraisal, PCA, Phase I, zoning, title commitment, survey, insurance cert); per-asset security docs (mortgage/deed of trust, UCC-1); per-deal loan docs (loan agreement, note, guaranty, assignment of leases and rents, interest rate cap agreement, closing cert, legal opinion); per-asset underwriting (rent roll, operating statement) and per-guarantor financial statements.
 - **unsecured_term_loan**: NO collateral or per-asset diligence sections; per-entity KYC; per-deal loan docs (credit agreement, notes, subsidiary guaranties, closing cert, legal opinion, solvency certificate, officer's certificate, board resolutions); per-deal financial diligence (audited financials, projections, compliance certificate).
 - **revolver**: same corporate/KYC base as unsecured plus borrowing base certificate, fee letters, deposit account control agreements, LC documentation; if the profile has facility_feature "asset_based", add field exam report and collateral schedules with UCC-1s.
-- **sponsor_backed** (cross-cutting): when `sponsor_backed: true` in the deal profile, ANY deal type appends fund-layer docs — fund LPA, GP formation docs, sponsor guaranty, guarantor financial statements, structure/org chart.
+- **sponsor_backed** (cross-cutting): when `sponsor_backed: true` in the deal profile, ANY deal type appends fund-layer docs — fund LPA, GP formation docs, sponsor guaranty, structure/org chart.
 Deal types outside the library → build a best-guess skeleton and flag UNKNOWN_DEAL_TYPE for review; never fail silently.
 
 ## Deal profile schema (what T0 must extract)
@@ -33,4 +33,5 @@ Deal types outside the library → build a best-guess skeleton and flag UNKNOWN_
 - Test inputs are FAKE term sheets and stub documents generated for this project. Never real deal documents.
 - `credentials.json`, `token.json`, `secrets/` are gitignored.
 - Scripts that need LLM classification (T0c extractor, T5 sorter) must NOT call the Anthropic API with an API key — instead they shell out to Claude Code headless mode (`claude -p`) so it runs on the user's subscription.
+- The T2 rules engine must dedupe expected docs by (doc name + owner) so overlay items never double-count docs already required for the same entity.
 - If a step is ambiguous, ask before building — do not invent scope.
