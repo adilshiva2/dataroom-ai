@@ -6,7 +6,11 @@ call, moves each to the correct data room folder with a standardized
 name, and updates checklist.csv.
 
 Usage:
-    python engine/sort_inbox.py [inbox_path]
+    python engine/sort_inbox.py [inbox_path_or_zip]
+
+Accepts a directory path OR a .zip file.  When given a .zip, the archive
+is extracted to a temporary directory, sorted normally, and the temp dir
+is cleaned up afterward.
 
 Classification outcomes:
   MATCH        → move to the matching subfolder, mark checklist "received"
@@ -19,9 +23,11 @@ NO direct Anthropic API calls — uses claude -p per project policy.
 import csv
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 
@@ -203,7 +209,6 @@ def find_drafts_folder(checklist, doc_name):
     "N.1 Drafts".  A simple .replace("Executed","Drafts") would produce
     "N.2 Drafts" which is wrong.
     """
-    import re
     for row in checklist:
         if (row["doc_name"] == doc_name
                 and "Executed" in row.get("folder", "")
@@ -221,12 +226,63 @@ def std_filename(doc_name, owner, ext):
 
 # ── Main ────────────────────────────────────────────────────────────
 
+def unzip_to_temp(zip_path):
+    """Extract a .zip to a temp directory, returning the path.
+
+    Nested directories inside the zip are flattened — only the leaf
+    files are kept (with their basenames) so the sorter sees a flat
+    list identical to a normal inbox folder.  Dotfiles and __MACOSX
+    artifacts are skipped.
+    """
+    tmp = tempfile.mkdtemp(prefix="dataroom_inbox_")
+    with zipfile.ZipFile(zip_path) as zf:
+        for member in zf.infolist():
+            if member.is_dir():
+                continue
+            basename = os.path.basename(member.filename)
+            if not basename or basename.startswith("."):
+                continue
+            # Skip macOS resource forks
+            if "__MACOSX" in member.filename:
+                continue
+            target = os.path.join(tmp, basename)
+            # Handle duplicate basenames by appending a suffix
+            if os.path.exists(target):
+                name, ext = os.path.splitext(basename)
+                i = 2
+                while os.path.exists(target):
+                    target = os.path.join(tmp, f"{name}_{i}{ext}")
+                    i += 1
+            with zf.open(member) as src, open(target, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+    return tmp
+
+
 def main():
-    inbox = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "inbox")
-    if not os.path.isdir(inbox):
-        print(f"Inbox not found: {inbox}", file=sys.stderr)
+    arg = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "inbox")
+    tmp_dir = None
+
+    # Handle .zip input
+    if os.path.isfile(arg) and arg.lower().endswith(".zip"):
+        print(f"Extracting {arg}...")
+        tmp_dir = unzip_to_temp(arg)
+        inbox = tmp_dir
+        print(f"Extracted to temporary directory: {tmp_dir}")
+    elif os.path.isdir(arg):
+        inbox = arg
+    else:
+        print(f"Inbox not found: {arg}", file=sys.stderr)
         sys.exit(1)
 
+    try:
+        _sort_inbox(inbox)
+    finally:
+        if tmp_dir:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+            print(f"\nCleaned up temp directory.")
+
+
+def _sort_inbox(inbox):
     files = sorted(
         f for f in os.listdir(inbox)
         if os.path.isfile(os.path.join(inbox, f)) and not f.startswith(".")

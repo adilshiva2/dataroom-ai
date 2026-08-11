@@ -7,12 +7,12 @@ Reads checklist.csv and deal_profile.json, produces:
 
 Routing rules (who gets chased for what):
   - Borrower's counsel: Organizational & KYC Documents,
-    Sponsor & Fund Documents, Guarantor Financials (Due Diligence 5.3)
-  - Third-party / broker: Third-Party Reports,
-    Security & Collateral Documents, Due Diligence (per-asset: rent rolls,
-    operating statements)
-  - Internal (not chased): Principal Loan Documents (executed) — these
-    are drafting items tracked internally
+    Sponsor & Fund Documents, Guarantor Financials (Due Diligence 5.3),
+    Rent Rolls and Financial Statements (Due Diligence 5.1, 5.2)
+  - Third-party / broker: Third-Party Reports
+  - Internal (not chased): Principal Loan Documents (executed),
+    Security & Collateral Documents (Mortgages, UCC-1s) — these are
+    drafting items prepared by lender's counsel
 
 No LLM calls — plain templating from checklist data.
 """
@@ -41,20 +41,17 @@ INTERNAL = "Internal (Drafting)"
 def route_party(row):
     """Determine the responsible party for a missing doc."""
     cat = row["category"]
-    subfolder = row["folder"]
 
     if cat == "Organizational & KYC Documents":
         return BORROWER_COUNSEL
     if cat == "Sponsor & Fund Documents":
         return BORROWER_COUNSEL
-    if cat == "Due Diligence" and "Guarantor Financials" in subfolder:
+    if cat == "Due Diligence":
         return BORROWER_COUNSEL
     if cat == "Third-Party Reports":
         return THIRD_PARTY
     if cat == "Security & Collateral Documents":
-        return THIRD_PARTY
-    if cat == "Due Diligence":
-        return THIRD_PARTY
+        return INTERNAL
     if cat == "Principal Loan Documents":
         return INTERNAL
     return THIRD_PARTY
@@ -168,9 +165,10 @@ def generate_email(party, missing_rows, profile):
         lines.append("Team,")
         lines.append("")
         lines.append(
-            f"Below is the current list of outstanding executed loan "
-            f"documents for the {deal_desc}. Please coordinate with "
-            f"outside counsel to finalize and circulate execution copies."
+            f"Below is the current list of outstanding loan documents and "
+            f"security instruments for the {deal_desc}. Please coordinate "
+            f"with outside counsel to finalize and circulate execution "
+            f"copies."
         )
     elif party == BORROWER_COUNSEL:
         lines.append(
@@ -195,8 +193,7 @@ def generate_email(party, missing_rows, profile):
         lines.append("")
         lines.append(
             f"In connection with the {deal_desc} (the \"Facility\"), "
-            f"the following third-party reports, property-level due "
-            f"diligence, and collateral documents remain outstanding. "
+            f"the following third-party reports remain outstanding. "
             f"We would be grateful if you could arrange for delivery of "
             f"these items at your earliest convenience."
         )
