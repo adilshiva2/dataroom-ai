@@ -1,15 +1,26 @@
 #!/usr/bin/env bash
-# demo.sh — Reset and rerun the full DealRoom pipeline end to end.
+# demo.sh — Reset and rerun the full DataRoom AI pipeline end to end.
 #
 # Rebuilds the data room at output/dataroom/, regenerates test docs,
 # zips them, sorts the zip, and prints the missing-document report.
 #
-# Prerequisites: Python 3.9+, pypdf (pip install pypdf)
+# Prerequisites: Python 3.9+, pypdf (pip install pypdf), Claude Code (claude -p)
 
 set -euo pipefail
 cd "$(dirname "$0")"
 
-echo "=== DealRoom Demo ==="
+# Check prerequisites
+if ! command -v claude &> /dev/null; then
+    echo "Error: 'claude' is not installed or not on PATH."
+    echo ""
+    echo "This demo requires Claude Code (https://docs.anthropic.com/en/docs/claude-code)."
+    echo "The pipeline uses 'claude -p' for document extraction and classification."
+    echo ""
+    echo "Install it, log in with your Claude subscription, then rerun ./demo.sh."
+    exit 1
+fi
+
+echo "=== DataRoom AI Demo ==="
 echo ""
 
 # 1. Parse deal (uses existing term sheet + deal profile)

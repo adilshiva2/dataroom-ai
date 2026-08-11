@@ -1,4 +1,4 @@
-# DealRoom
+# DataRoom AI
 
 ## The problem
 
@@ -6,7 +6,7 @@ Closing data rooms are assembled by hand. An associate creates 40+ folders, rena
 
 ## What this does
 
-DealRoom reads a term sheet and builds a complete, self-auditing closing data room — no manual setup.
+DataRoom AI reads a term sheet and builds a complete, self-auditing closing data room — no manual setup.
 
 1. **Term sheet PDF in** — the LLM extracts a structured deal profile: deal type, borrower, guarantors, assets, lender, facility features
 2. **Rules engine fires** — selects the matching deal-type taxonomy and computes every expected document (72 for this deal, derived from the profile, not hardcoded)
@@ -40,7 +40,7 @@ Starting from 22 test files (a realistic mix of clean and messy uploads):
 
 ## Why this matters
 
-Lawyers should audit what models produce, not do the busywork models are good at. Filing, renaming, and tracking documents against a checklist is mechanical — the value is in knowing what's missing and chasing it down. DealRoom handles the organization so the closing team can focus on the substance: reviewing documents, catching issues, and getting to signing.
+Lawyers should audit what models produce, not do the busywork models are good at. Filing, renaming, and tracking documents against a checklist is mechanical — the value is in knowing what's missing and chasing it down. DataRoom AI handles the organization so the closing team can focus on the substance: reviewing documents, catching issues, and getting to signing.
 
 ## Roadmap
 
@@ -52,11 +52,24 @@ Lawyers should audit what models produce, not do the busywork models are good at
 
 ## Run the demo
 
+**Prerequisites**
+
+- Python 3.9+
+- `pip install pypdf`
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and logged in — the pipeline's extraction and classification steps run through `claude -p`, so a Claude subscription is required; no API key needed
+
+**Steps**
+
 ```bash
+git clone https://github.com/adilshiva2/dataroom-ai.git
+cd dataroom-ai
+pip install pypdf
 ./demo.sh
 ```
 
-Resets the data room, regenerates 22 test documents, zips them, sorts the zip, and prints the missing-document report. Requires Python 3.9+ and `pypdf` (`pip install pypdf`).
+**What to expect**
+
+The demo resets the data room, regenerates 22 test documents, zips them, sorts the zip via a single `claude -p` classification call, and prints the missing-document report. The classification step is the slow part. End state: a sorted data room at `output/dataroom/` with 20 documents filed, 1 draft routed to `4.1 Drafts/`, 1 decoy flagged in `NEEDS_REVIEW/`, plus a printed missing-document report and drafted chaser emails in `output/emails/`.
 
 ## Built with
 
