@@ -1,0 +1,73 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1075 >>
+stream
+BT
+/F1 13 Tf
+1 0 0 1 72 740 Tm
+(Organizational Structure Chart) Tj
+/F1 10 Tf
+1 0 0 1 72 714 Tm
+(MERIDIAN MULTIFAMILY HOLDINGS LLC) Tj
+1 0 0 1 72 700 Tm
+(ORGANIZATIONAL STRUCTURE CHART) Tj
+1 0 0 1 72 686 Tm
+() Tj
+1 0 0 1 72 678 Tm
+(Meridian Capital Partners \(Sponsor\)) Tj
+1 0 0 1 72 664 Tm
+(|) Tj
+1 0 0 1 72 650 Tm
+(+-- Meridian REF III GP, LLC \(General Partner, DE LLC\)) Tj
+1 0 0 1 72 636 Tm
+(| |) Tj
+1 0 0 1 72 622 Tm
+(| +-- Meridian Real Estate Fund III, L.P. \(Fund, DE LP\)) Tj
+1 0 0 1 72 608 Tm
+(| |) Tj
+1 0 0 1 72 594 Tm
+(| +-- Meridian Multifamily Holdings LLC \(Borrower, DE LLC\)) Tj
+1 0 0 1 72 580 Tm
+(| |) Tj
+1 0 0 1 72 566 Tm
+(| +-- Oakline Commons \(Dallas, TX\)) Tj
+1 0 0 1 72 552 Tm
+(| +-- Brazos Bend Apartments \(Houston, TX\)) Tj
+1 0 0 1 72 538 Tm
+(| +-- Hill Country Flats \(Austin, TX\)) Tj
+1 0 0 1 72 524 Tm
+(| +-- Mission Verde Residences \(San Antonio, TX\)) Tj
+1 0 0 1 72 510 Tm
+() Tj
+1 0 0 1 72 502 Tm
+(Guarantors: Meridian Real Estate Fund III, L.P. and Meridian REF III GP, LLC) Tj
+1 0 0 1 72 488 Tm
+(Lender: First Continental Bank, N.A.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001368 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1438
+%%EOF

@@ -1,0 +1,65 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 990 >>
+stream
+BT
+/F1 13 Tf
+1 0 0 1 72 740 Tm
+(Promissory Note) Tj
+/F1 10 Tf
+1 0 0 1 72 714 Tm
+(PROMISSORY NOTE) Tj
+1 0 0 1 72 700 Tm
+() Tj
+1 0 0 1 72 692 Tm
+($42,000,000.00) Tj
+1 0 0 1 72 678 Tm
+(New York, New York) Tj
+1 0 0 1 72 664 Tm
+([Closing Date], 2024) Tj
+1 0 0 1 72 650 Tm
+() Tj
+1 0 0 1 72 642 Tm
+(FOR VALUE RECEIVED, Meridian Multifamily Holdings LLC, a Delaware limited) Tj
+1 0 0 1 72 628 Tm
+(liability company \(the 'Maker'\), hereby unconditionally promises to pay to the) Tj
+1 0 0 1 72 614 Tm
+(order of First Continental Bank, N.A. \(the 'Payee'\) the principal sum of) Tj
+1 0 0 1 72 600 Tm
+(FORTY-TWO MILLION AND 00/100 DOLLARS \($42,000,000.00\), together with interest) Tj
+1 0 0 1 72 586 Tm
+(thereon as set forth in the Loan Agreement dated as of [Closing Date], 2024.) Tj
+1 0 0 1 72 572 Tm
+() Tj
+1 0 0 1 72 564 Tm
+(Interest shall accrue at Term SOFR \(1-month\) plus 2.65% per annum, subject to) Tj
+1 0 0 1 72 550 Tm
+(a SOFR floor of 0.25%. Interest is payable monthly in arrears.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001282 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1352
+%%EOF
