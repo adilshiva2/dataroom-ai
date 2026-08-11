@@ -23,18 +23,18 @@ FALLBACK_CATEGORIES = [
         "name": "General Documents",
         "scope": "per_deal",
         "docs": [
-            "Loan Agreement",
-            "Closing Certificate",
-            "Legal Opinion",
+            {"name": "Loan Agreement", "subfolder": "Loan Agreement"},
+            {"name": "Closing Certificate", "subfolder": "Closing Certificate"},
+            {"name": "Legal Opinion", "subfolder": "Legal Opinion"},
         ],
     },
     {
-        "name": "Entity / KYC",
+        "name": "Organizational & KYC Documents",
         "scope": "per_entity",
         "docs": [
-            "Formation Certificate",
-            "Good Standing Certificate",
-            "W-9",
+            {"name": "Formation Certificate", "subfolder": "Formation Certificates"},
+            {"name": "Good Standing Certificate", "subfolder": "Good Standing Certificates"},
+            {"name": "W-9", "subfolder": "W-9s"},
         ],
     },
 ]
@@ -70,6 +70,13 @@ def entities_from_profile(profile):
     return entities
 
 
+def parse_doc(doc_entry):
+    """Handle both string and object doc formats."""
+    if isinstance(doc_entry, str):
+        return doc_entry, doc_entry
+    return doc_entry["name"], doc_entry["subfolder"]
+
+
 def expand_categories(categories, profile):
     """Expand scoped categories into flat doc entries."""
     entries = []
@@ -79,42 +86,36 @@ def expand_categories(categories, profile):
 
     for cat in categories:
         scope = cat["scope"]
-        for doc_name in cat["docs"]:
-            if scope == "per_entity":
-                for entity in entities:
-                    entries.append({
-                        "doc_name": doc_name,
-                        "category": cat["name"],
-                        "scope": scope,
-                        "owner": entity["name"],
-                        "status": "missing",
-                    })
-            elif scope == "per_asset":
-                for asset in assets:
-                    entries.append({
-                        "doc_name": doc_name,
-                        "category": cat["name"],
-                        "scope": scope,
-                        "owner": asset["name"],
-                        "status": "missing",
-                    })
-            elif scope == "per_guarantor":
-                for g in guarantors:
-                    entries.append({
-                        "doc_name": doc_name,
-                        "category": cat["name"],
-                        "scope": scope,
-                        "owner": g["name"],
-                        "status": "missing",
-                    })
-            elif scope == "per_deal":
-                entries.append({
+        drafts_and_executed = cat.get("drafts_and_executed", False)
+
+        for doc_entry in cat["docs"]:
+            doc_name, subfolder = parse_doc(doc_entry)
+
+            def make_entry(owner):
+                entry = {
                     "doc_name": doc_name,
                     "category": cat["name"],
+                    "subfolder": subfolder,
                     "scope": scope,
-                    "owner": "deal",
+                    "owner": owner,
                     "status": "missing",
-                })
+                }
+                if drafts_and_executed:
+                    entry["drafts_and_executed"] = True
+                return entry
+
+            if scope == "per_entity":
+                for entity in entities:
+                    entries.append(make_entry(entity["name"]))
+            elif scope == "per_asset":
+                for asset in assets:
+                    entries.append(make_entry(asset["name"]))
+            elif scope == "per_guarantor":
+                for g in guarantors:
+                    entries.append(make_entry(g["name"]))
+            elif scope == "per_deal":
+                entries.append(make_entry("deal"))
+
     return entries
 
 
@@ -180,12 +181,12 @@ def summarize(manifest):
     print(f"\nDeal type: {manifest['deal_type']}")
     if "flags" in manifest:
         print(f"Flags: {manifest['flags']}")
-    print(f"{'Category':<30} Count")
-    print("-" * 40)
+    print(f"{'Category':<35} Count")
+    print("-" * 45)
     for cat, count in counts.items():
-        print(f"{cat:<30} {count}")
-    print("-" * 40)
-    print(f"{'TOTAL':<30} {manifest['total_expected']}")
+        print(f"{cat:<35} {count}")
+    print("-" * 45)
+    print(f"{'TOTAL':<35} {manifest['total_expected']}")
 
 
 def main():

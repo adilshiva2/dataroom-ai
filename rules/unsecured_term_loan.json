@@ -2,37 +2,38 @@
   "deal_type": "unsecured_term_loan",
   "categories": [
     {
-      "name": "Entity / KYC",
+      "name": "Organizational & KYC Documents",
       "scope": "per_entity",
       "docs": [
-        "Formation Certificate",
-        "Operating Agreement / LPA",
-        "Good Standing Certificate",
-        "W-9",
-        "Beneficial Ownership Certification"
+        {"name": "Formation Certificate", "subfolder": "Formation Certificates"},
+        {"name": "Operating Agreement / LPA", "subfolder": "Operating Agreements - LPAs"},
+        {"name": "Good Standing Certificate", "subfolder": "Good Standing Certificates"},
+        {"name": "W-9", "subfolder": "W-9s"},
+        {"name": "Beneficial Ownership Certification", "subfolder": "Beneficial Ownership Certifications"}
       ]
     },
     {
-      "name": "Loan Documents",
+      "name": "Principal Loan Documents",
       "scope": "per_deal",
+      "drafts_and_executed": true,
       "docs": [
-        "Credit Agreement",
-        "Notes",
-        "Subsidiary Guaranties",
-        "Closing Certificate",
-        "Legal Opinion",
-        "Solvency Certificate",
-        "Officer's Certificate",
-        "Board Resolutions"
+        {"name": "Credit Agreement", "subfolder": "Credit Agreement"},
+        {"name": "Notes", "subfolder": "Notes"},
+        {"name": "Subsidiary Guaranties", "subfolder": "Subsidiary Guaranties"},
+        {"name": "Closing Certificate", "subfolder": "Closing Certificate"},
+        {"name": "Legal Opinion", "subfolder": "Legal Opinion"},
+        {"name": "Solvency Certificate", "subfolder": "Solvency Certificate"},
+        {"name": "Officer's Certificate", "subfolder": "Officer's Certificate"},
+        {"name": "Board Resolutions", "subfolder": "Board Resolutions"}
       ]
     },
     {
-      "name": "Financial Diligence",
+      "name": "Due Diligence",
       "scope": "per_deal",
       "docs": [
-        "Audited Financial Statements",
-        "Projections",
-        "Compliance Certificate"
+        {"name": "Audited Financial Statements", "subfolder": "Audited Financial Statements"},
+        {"name": "Projections", "subfolder": "Projections"},
+        {"name": "Compliance Certificate", "subfolder": "Compliance Certificate"}
       ]
     }
   ]

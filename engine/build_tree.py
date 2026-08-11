@@ -3,11 +3,16 @@
 
 Reads output/manifest.json, creates a numbered folder tree under
 output/dataroom/, and writes output/dataroom/checklist.csv with every
-expected document and per-folder expected/received/missing counts.
+expected document and per-subfolder expected/received/missing counts.
 
-Per-entity, per-asset, and per-guarantor categories get numbered
-subfolders per owner (e.g. "2.1 Oakline Commons").  Per-deal categories
-are flat.
+Subfolders are by DOCUMENT TYPE (not by owner).  Files inside are
+named "{Doc Name} - {Owner}.pdf" for scoped docs, or "{Doc Name}.pdf"
+for per-deal docs.
+
+Principal Loan Documents get a special "Drafts / Executed" split:
+  N.1 Drafts/   — untracked working folder (no checklist entries)
+  N.2 Executed/  — tracked; checklist entries point here
+Both contain identical doc-type subfolders.
 """
 
 import csv
@@ -31,20 +36,13 @@ def sanitize(name):
 
 
 def build_folder_plan(docs):
-    """Return an ordered list of folder entries from the manifest docs.
+    """Build the folder structure from manifest docs.
 
-    Each entry: {
-        "category": str,
-        "cat_num": int,          # 1-based
-        "cat_folder": str,       # e.g. "1 Entity - KYC"
-        "owner": str or None,    # None for per_deal
-        "owner_num": str or None,# e.g. "1.2"
-        "owner_folder": str or None,
-        "folder_path": str,      # relative path under dataroom/
-        "docs": [doc_entries],
-    }
+    Returns (folders, checklist_rows) where:
+      folders   = set of directory paths to create (relative to dataroom/)
+      checklist_rows = list of dicts with folder, doc_name, owner, etc.
     """
-    # Discover categories in manifest order, preserving first-seen ordering
+    # Discover categories in manifest order
     cat_order = []
     cat_seen = set()
     for doc in docs:
@@ -53,64 +51,109 @@ def build_folder_plan(docs):
             cat_seen.add(cat)
             cat_order.append(cat)
 
-    # Group docs by (category, owner)
-    groups = {}
-    for doc in docs:
-        key = (doc["category"], doc["owner"])
-        groups.setdefault(key, []).append(doc)
-
-    # For each category, discover unique owners in manifest order
-    cat_owners = {}
+    # For each category, discover unique subfolders in manifest order
+    cat_subfolders = {}
     for doc in docs:
         cat = doc["category"]
-        owner = doc["owner"]
-        cat_owners.setdefault(cat, [])
-        if owner not in cat_owners[cat]:
-            cat_owners[cat].append(owner)
+        sf = doc["subfolder"]
+        cat_subfolders.setdefault(cat, [])
+        if sf not in cat_subfolders[cat]:
+            cat_subfolders[cat].append(sf)
 
-    folders = []
+    # Check which categories use drafts_and_executed
+    cat_drafts = {}
+    for doc in docs:
+        if doc.get("drafts_and_executed"):
+            cat_drafts[doc["category"]] = True
+
+    dirs_to_create = set()
+    checklist_rows = []
+
     for cat_idx, cat in enumerate(cat_order, 1):
-        cat_folder_name = sanitize(f"{cat_idx} {cat}")
-        owners = cat_owners[cat]
-        scoped = len(owners) > 1 or (len(owners) == 1 and owners[0] != "deal")
+        cat_folder = sanitize(f"{cat_idx} {cat}")
+        dirs_to_create.add(cat_folder)
+        subfolders = cat_subfolders[cat]
+        is_drafts = cat_drafts.get(cat, False)
 
-        if scoped:
-            for owner_idx, owner in enumerate(owners, 1):
-                owner_folder_name = sanitize(f"{cat_idx}.{owner_idx} {owner}")
-                folder_path = os.path.join(cat_folder_name, owner_folder_name)
-                folders.append({
-                    "category": cat,
-                    "cat_folder": cat_folder_name,
-                    "owner": owner,
-                    "folder_path": folder_path,
-                    "docs": groups[(cat, owner)],
+        if is_drafts:
+            # Special: Drafts + Executed split
+            drafts_folder = os.path.join(cat_folder, f"{cat_idx}.1 Drafts")
+            executed_folder = os.path.join(cat_folder, f"{cat_idx}.2 Executed")
+            dirs_to_create.add(drafts_folder)
+            dirs_to_create.add(executed_folder)
+
+            for sf in subfolders:
+                sf_safe = sanitize(sf)
+                dirs_to_create.add(os.path.join(drafts_folder, sf_safe))
+                dirs_to_create.add(os.path.join(executed_folder, sf_safe))
+
+            # Checklist entries point to Executed only
+            for doc in docs:
+                if doc["category"] != cat:
+                    continue
+                sf_safe = sanitize(doc["subfolder"])
+                folder_path = os.path.join(executed_folder, sf_safe)
+                checklist_rows.append({
+                    "folder": folder_path,
+                    "doc_name": doc["doc_name"],
+                    "owner": doc["owner"],
+                    "category": doc["category"],
+                    "subfolder": doc["subfolder"],
+                    "scope": doc["scope"],
+                    "status": doc["status"],
                 })
         else:
-            folder_path = cat_folder_name
-            folders.append({
-                "category": cat,
-                "cat_folder": cat_folder_name,
-                "owner": "deal",
-                "folder_path": folder_path,
-                "docs": groups[(cat, owners[0])],
-            })
+            # Standard: numbered doc-type subfolders
+            for sf_idx, sf in enumerate(subfolders, 1):
+                sf_safe = sanitize(f"{cat_idx}.{sf_idx} {sf}")
+                sf_path = os.path.join(cat_folder, sf_safe)
+                dirs_to_create.add(sf_path)
 
-    return folders
+                for doc in docs:
+                    if doc["category"] != cat or doc["subfolder"] != sf:
+                        continue
+                    checklist_rows.append({
+                        "folder": sf_path,
+                        "doc_name": doc["doc_name"],
+                        "owner": doc["owner"],
+                        "category": doc["category"],
+                        "subfolder": doc["subfolder"],
+                        "scope": doc["scope"],
+                        "status": doc["status"],
+                    })
+
+    return dirs_to_create, checklist_rows
 
 
-def create_tree(folders):
+def create_tree(dirs_to_create):
     """Create the folder tree on disk."""
     if os.path.exists(DATAROOM):
         shutil.rmtree(DATAROOM)
     os.makedirs(DATAROOM)
 
-    for folder in folders:
-        os.makedirs(os.path.join(DATAROOM, folder["folder_path"]), exist_ok=True)
+    for d in sorted(dirs_to_create):
+        os.makedirs(os.path.join(DATAROOM, d), exist_ok=True)
 
 
-def write_checklist(folders):
-    """Write checklist.csv with doc rows and per-folder summary rows."""
+def write_checklist(checklist_rows):
+    """Write checklist.csv with doc rows and per-subfolder summary rows."""
     csv_path = os.path.join(DATAROOM, "checklist.csv")
+
+    # Group rows by folder for summary totals
+    folder_groups = []
+    current_folder = None
+    current_batch = []
+    for row in checklist_rows:
+        if row["folder"] != current_folder:
+            if current_batch:
+                folder_groups.append((current_folder, current_batch))
+            current_folder = row["folder"]
+            current_batch = [row]
+        else:
+            current_batch.append(row)
+    if current_batch:
+        folder_groups.append((current_folder, current_batch))
+
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow([
@@ -118,27 +161,20 @@ def write_checklist(folders):
             "status", "expected", "received", "missing",
         ])
 
-        for folder in folders:
-            docs = folder["docs"]
-            expected = len(docs)
-            received = sum(1 for d in docs if d["status"] == "received")
+        for folder, rows in folder_groups:
+            expected = len(rows)
+            received = sum(1 for r in rows if r["status"] == "received")
             missing = expected - received
 
-            for doc in docs:
+            for row in rows:
                 writer.writerow([
-                    folder["folder_path"],
-                    doc["doc_name"],
-                    doc["owner"],
-                    doc["category"],
-                    doc["scope"],
-                    doc["status"],
+                    row["folder"], row["doc_name"], row["owner"],
+                    row["category"], row["scope"], row["status"],
                     "", "", "",
                 ])
 
-            # Summary row for this folder
             writer.writerow([
-                folder["folder_path"],
-                "--- FOLDER TOTAL ---",
+                folder, "--- SUBFOLDER TOTAL ---",
                 "", "", "", "",
                 expected, received, missing,
             ])
@@ -146,40 +182,43 @@ def write_checklist(folders):
     return csv_path
 
 
-def print_tree(folders):
-    """Print the folder tree."""
+def print_tree():
+    """Print the tree from the filesystem."""
     print("\noutput/dataroom/")
-    prev_cat = None
-    for folder in folders:
-        cat_folder = folder["cat_folder"]
-        if cat_folder != prev_cat:
-            print(f"├── {cat_folder}/")
-            prev_cat = cat_folder
+    all_dirs = []
+    for dirpath, dirnames, _ in os.walk(DATAROOM):
+        dirnames.sort()
+        rel = os.path.relpath(dirpath, DATAROOM)
+        if rel == ".":
+            continue
+        all_dirs.append(rel)
 
-        if folder["owner"] != "deal" or cat_folder != folder["folder_path"]:
-            parts = folder["folder_path"].split(os.sep)
-            if len(parts) > 1:
-                is_last_in_cat = (
-                    folder == folders[-1]
-                    or folders[folders.index(folder) + 1]["cat_folder"] != cat_folder
-                )
-                connector = "└" if is_last_in_cat else "├"
-                print(f"│   {connector}── {parts[1]}/")
+    for i, d in enumerate(sorted(all_dirs)):
+        depth = d.count(os.sep)
+        name = os.path.basename(d)
+        indent = "│   " * depth
+        is_last = (
+            i == len(all_dirs) - 1
+            or not sorted(all_dirs)[i + 1].startswith(d.rsplit(os.sep, 1)[0] + os.sep)
+            if depth > 0 and i < len(all_dirs) - 1
+            else i == len(all_dirs) - 1
+        )
+        connector = "└── " if is_last else "├── "
+        print(f"{indent}{connector}{name}/")
 
 
 def main():
     manifest = load_manifest()
-    folders = build_folder_plan(manifest["docs"])
-    create_tree(folders)
-    csv_path = write_checklist(folders)
+    dirs_to_create, checklist_rows = build_folder_plan(manifest["docs"])
+    create_tree(dirs_to_create)
+    csv_path = write_checklist(checklist_rows)
 
-    print(f"Created {len(folders)} folders under output/dataroom/")
+    dir_count = len(dirs_to_create)
+    doc_count = len(checklist_rows)
+    print(f"Created {dir_count} directories under output/dataroom/")
     print(f"Wrote {csv_path}")
-    print_tree(folders)
-
-    # Print total counts
-    total_docs = sum(len(f["docs"]) for f in folders)
-    print(f"\nChecklist: {total_docs} expected docs, all missing")
+    print(f"Checklist: {doc_count} expected docs, all missing")
+    print_tree()
 
 
 if __name__ == "__main__":

@@ -8,11 +8,22 @@ Thesis: lawyers repeat this organization work thousands of times across deal typ
 ## The core design principle
 NOTHING about the deal is hardcoded. The extraction step (T0) produces `deal_profile.json` including `deal_type`, and the rules engine selects the matching taxonomy from a rules library. Adding a new deal type = adding one rules file, zero code changes.
 
-## Deal types in the rules library (v1)
-- **secured_term_loan** (real estate): per-entity KYC (formation cert, operating agreement/LPA, good standing, W-9, beneficial ownership); per-asset third-party reports (appraisal, PCA, Phase I, zoning, title commitment, survey, insurance cert); per-asset security docs (mortgage/deed of trust, UCC-1); per-deal loan docs (loan agreement, note, guaranty, assignment of leases and rents, interest rate cap agreement, closing cert, legal opinion); per-asset underwriting (rent roll, operating statement) and per-guarantor financial statements.
-- **unsecured_term_loan**: NO collateral or per-asset diligence sections; per-entity KYC; per-deal loan docs (credit agreement, notes, subsidiary guaranties, closing cert, legal opinion, solvency certificate, officer's certificate, board resolutions); per-deal financial diligence (audited financials, projections, compliance certificate).
-- **revolver**: same corporate/KYC base as unsecured plus borrowing base certificate, fee letters, deposit account control agreements, LC documentation; if the profile has facility_feature "asset_based", add field exam report and collateral schedules with UCC-1s.
-- **sponsor_backed** (cross-cutting): when `sponsor_backed: true` in the deal profile, ANY deal type appends fund-layer docs — fund LPA, GP formation docs, sponsor guaranty, structure/org chart.
+## Data room taxonomy
+Subfolders are by DOCUMENT TYPE, not by owner. Every doc type in each category gets a numbered subfolder; files inside are named by owner (e.g. `Formation Certificate - Meridian Multifamily Holdings LLC.pdf`).
+
+### Category structure (closing-checklist language)
+1. **Organizational & KYC Documents** — per-entity: 1.1 Formation Certificates, 1.2 Operating Agreements / LPAs, 1.3 Good Standing Certificates, 1.4 W-9s, 1.5 Beneficial Ownership Certifications
+2. **Third-Party Reports** — per-asset: 2.1 Appraisals, 2.2 Property Condition Assessments, 2.3 Phase I Environmental, 2.4 Zoning Reports, 2.5 Title Commitments, 2.6 Surveys, 2.7 Insurance Certificates
+3. **Security & Collateral Documents** — per-asset: 3.1 Mortgages / Deeds of Trust, 3.2 UCC-1 Financing Statements
+4. **Principal Loan Documents** — per-deal, with a Drafts/Executed split: 4.1 Drafts and 4.2 Executed each contain the same doc-type folders (Loan Agreement, Promissory Note, Guaranty, Assignment of Leases and Rents, Interest Rate Cap Agreement, Closing Certificate, Legal Opinion). The checklist tracks ONLY the Executed set — Drafts is an untracked working folder. The T5 sorter must route docs titled as drafts/redlines to Drafts and file them WITHOUT ticking the checklist.
+5. **Due Diligence** — 5.1 Rent Rolls (per-asset), 5.2 Financial Statements / property operating statements (per-asset), 5.3 Guarantor Financials (per-guarantor)
+6. **Sponsor & Fund Documents** — per-deal (overlay when `sponsor_backed: true`): Fund LPA, GP Formation Documents, Sponsor Guaranty, Structure / Org Chart
+
+### Deal types in the rules library (v1)
+- **secured_term_loan** (real estate): all 6 categories above.
+- **unsecured_term_loan**: NO collateral or per-asset sections (categories 2, 3 omitted); Organizational & KYC; Principal Loan Documents (credit agreement, notes, subsidiary guaranties, closing cert, legal opinion, solvency certificate, officer's certificate, board resolutions); Due Diligence (audited financials, projections, compliance certificate).
+- **revolver**: same base as unsecured plus borrowing base certificate, fee letters, deposit account control agreements, LC documentation; if the profile has facility_feature "asset_based", add Security & Collateral (field exam report, collateral schedules, UCC-1s).
+- **sponsor_backed** (cross-cutting overlay): when `sponsor_backed: true` in the deal profile, ANY deal type appends category 6 (Sponsor & Fund Documents).
 Deal types outside the library → build a best-guess skeleton and flag UNKNOWN_DEAL_TYPE for review; never fail silently.
 
 ## Deal profile schema (what T0 must extract)

@@ -5,13 +5,13 @@
   },
   "categories": [
     {
-      "name": "Sponsor / Fund Documents",
+      "name": "Sponsor & Fund Documents",
       "scope": "per_deal",
       "docs": [
-        "Fund LPA",
-        "GP Formation Documents",
-        "Sponsor Guaranty",
-        "Structure / Org Chart"
+        {"name": "Fund LPA", "subfolder": "Fund LPA"},
+        {"name": "GP Formation Documents", "subfolder": "GP Formation Documents"},
+        {"name": "Sponsor Guaranty", "subfolder": "Sponsor Guaranty"},
+        {"name": "Structure / Org Chart", "subfolder": "Structure - Org Chart"}
       ]
     }
   ]

@@ -2,63 +2,64 @@
   "deal_type": "secured_term_loan",
   "categories": [
     {
-      "name": "Entity / KYC",
+      "name": "Organizational & KYC Documents",
       "scope": "per_entity",
       "docs": [
-        "Formation Certificate",
-        "Operating Agreement / LPA",
-        "Good Standing Certificate",
-        "W-9",
-        "Beneficial Ownership Certification"
+        {"name": "Formation Certificate", "subfolder": "Formation Certificates"},
+        {"name": "Operating Agreement / LPA", "subfolder": "Operating Agreements - LPAs"},
+        {"name": "Good Standing Certificate", "subfolder": "Good Standing Certificates"},
+        {"name": "W-9", "subfolder": "W-9s"},
+        {"name": "Beneficial Ownership Certification", "subfolder": "Beneficial Ownership Certifications"}
       ]
     },
     {
       "name": "Third-Party Reports",
       "scope": "per_asset",
       "docs": [
-        "Appraisal",
-        "Property Condition Assessment",
-        "Phase I Environmental Site Assessment",
-        "Zoning Report",
-        "Title Commitment",
-        "Survey",
-        "Insurance Certificate"
+        {"name": "Appraisal", "subfolder": "Appraisals"},
+        {"name": "Property Condition Assessment", "subfolder": "Property Condition Assessments"},
+        {"name": "Phase I Environmental Site Assessment", "subfolder": "Phase I Environmental"},
+        {"name": "Zoning Report", "subfolder": "Zoning Reports"},
+        {"name": "Title Commitment", "subfolder": "Title Commitments"},
+        {"name": "Survey", "subfolder": "Surveys"},
+        {"name": "Insurance Certificate", "subfolder": "Insurance Certificates"}
       ]
     },
     {
-      "name": "Security Documents",
+      "name": "Security & Collateral Documents",
       "scope": "per_asset",
       "docs": [
-        "Mortgage / Deed of Trust",
-        "UCC-1 Financing Statement"
+        {"name": "Mortgage / Deed of Trust", "subfolder": "Mortgages - Deeds of Trust"},
+        {"name": "UCC-1 Financing Statement", "subfolder": "UCC-1 Financing Statements"}
       ]
     },
     {
-      "name": "Loan Documents",
+      "name": "Principal Loan Documents",
       "scope": "per_deal",
+      "drafts_and_executed": true,
       "docs": [
-        "Loan Agreement",
-        "Promissory Note",
-        "Guaranty",
-        "Assignment of Leases and Rents",
-        "Interest Rate Cap Agreement",
-        "Closing Certificate",
-        "Legal Opinion"
+        {"name": "Loan Agreement", "subfolder": "Loan Agreement"},
+        {"name": "Promissory Note", "subfolder": "Promissory Note"},
+        {"name": "Guaranty", "subfolder": "Guaranty"},
+        {"name": "Assignment of Leases and Rents", "subfolder": "Assignment of Leases and Rents"},
+        {"name": "Interest Rate Cap Agreement", "subfolder": "Interest Rate Cap Agreement"},
+        {"name": "Closing Certificate", "subfolder": "Closing Certificate"},
+        {"name": "Legal Opinion", "subfolder": "Legal Opinion"}
       ]
     },
     {
-      "name": "Underwriting — Asset",
+      "name": "Due Diligence",
       "scope": "per_asset",
       "docs": [
-        "Rent Roll",
-        "Operating Statement"
+        {"name": "Rent Roll", "subfolder": "Rent Rolls"},
+        {"name": "Operating Statement", "subfolder": "Financial Statements"}
       ]
     },
     {
-      "name": "Underwriting — Guarantor",
+      "name": "Due Diligence",
       "scope": "per_guarantor",
       "docs": [
-        "Guarantor Financial Statements"
+        {"name": "Guarantor Financial Statements", "subfolder": "Guarantor Financials"}
       ]
     }
   ]
