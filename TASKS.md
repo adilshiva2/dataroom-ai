@@ -12,7 +12,7 @@ Work strictly top to bottom. One task per prompt. Commit after each ✅.
 - [ ] **T5 — Inbox sorter.** `engine/sort_inbox.py`: classify each file (filename + first-page text via Claude API) against the manifest, move into place, update checklist, unknowns → NEEDS_REVIEW. Done when: ≥90% filed correctly on T4 files.
 - [ ] **T6 — Missing report + chaser emails.** `engine/report.py`: missing docs grouped by responsible party + one draft email each to `output/emails/`. Done when: emails read like an associate wrote them.
 - [ ] **T7 — Zip path.** A .zip dropped in inbox → unzip → sort → updated checklist, one command. Done when: zip-to-sorted-room runs clean.
-- [ ] **T8 — Google Drive mirror.** `engine/drive_sync.py`: recreate tree + upload sorted files via Drive API (OAuth desktop). Done when: room browsable in your Berkeley Drive.
+- [ ] **T8 — Google Drive delivery.** `--dest` flag on `build_tree.py` and `sort_inbox.py` (and `report.py`) so the data room can be built and sorted at any path — including a Google Drive for Desktop synced folder. No OAuth, no Drive API. Done when: data room browsable in Berkeley Drive via `--dest` to the synced folder.
 - [ ] **T9 — Package.** README (problem/thesis, screenshots: term sheet → JSON profile → data room + checklist, NEEDS_REVIEW shot), 2-min Loom, repo public. Optional flex if time: a second term sheet (unsecured) to show the room reshapes itself. Done when: a stranger gets it in 90 seconds.
 
 ## Roadmap (README only — do not build)

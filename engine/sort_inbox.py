@@ -6,11 +6,14 @@ call, moves each to the correct data room folder with a standardized
 name, and updates checklist.csv.
 
 Usage:
-    python engine/sort_inbox.py [inbox_path_or_zip]
+    python engine/sort_inbox.py [inbox_path_or_zip] [--dest /path/to/dataroom]
 
 Accepts a directory path OR a .zip file.  When given a .zip, the archive
 is extracted to a temporary directory, sorted normally, and the temp dir
 is cleaned up afterward.
+
+--dest overrides the data room location (default: output/dataroom/).
+Useful for building directly into a Google Drive-synced folder.
 
 Classification outcomes:
   MATCH        → move to the matching subfolder, mark checklist "received"
@@ -20,6 +23,7 @@ Classification outcomes:
 NO direct Anthropic API calls — uses claude -p per project policy.
 """
 
+import argparse
 import csv
 import json
 import os
@@ -35,9 +39,8 @@ from pypdf import PdfReader
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(ROOT, "output")
-DATAROOM = os.path.join(OUTPUT_DIR, "dataroom")
+DEFAULT_DATAROOM = os.path.join(OUTPUT_DIR, "dataroom")
 MANIFEST_PATH = os.path.join(OUTPUT_DIR, "manifest.json")
-CHECKLIST_PATH = os.path.join(DATAROOM, "checklist.csv")
 
 
 # ── Text extraction ─────────────────────────────────────────────────
@@ -87,16 +90,16 @@ FIELDS = ["folder", "doc_name", "owner", "category", "scope",
           "status", "expected", "received", "missing"]
 
 
-def load_checklist():
+def load_checklist(dataroom):
     rows = []
-    with open(CHECKLIST_PATH, newline="") as f:
+    with open(os.path.join(dataroom, "checklist.csv"), newline="") as f:
         for row in csv.DictReader(f):
             rows.append(row)
     return rows
 
 
-def write_checklist(rows):
-    with open(CHECKLIST_PATH, "w", newline="") as f:
+def write_checklist(rows, dataroom):
+    with open(os.path.join(dataroom, "checklist.csv"), "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS)
         w.writeheader()
         w.writerows(rows)
@@ -258,8 +261,21 @@ def unzip_to_temp(zip_path):
     return tmp
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Sort inbox files into data room")
+    parser.add_argument("inbox", nargs="?", default=os.path.join(ROOT, "inbox"),
+                        help="Inbox directory or .zip file "
+                             f"(default: {os.path.join(ROOT, 'inbox')})")
+    parser.add_argument("--dest", default=DEFAULT_DATAROOM,
+                        help="Destination data room path "
+                             f"(default: {DEFAULT_DATAROOM})")
+    return parser.parse_args()
+
+
 def main():
-    arg = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "inbox")
+    args = parse_args()
+    arg = args.inbox
+    dataroom = os.path.abspath(args.dest)
     tmp_dir = None
 
     # Handle .zip input
@@ -275,14 +291,14 @@ def main():
         sys.exit(1)
 
     try:
-        _sort_inbox(inbox)
+        _sort_inbox(inbox, dataroom)
     finally:
         if tmp_dir:
             shutil.rmtree(tmp_dir, ignore_errors=True)
             print(f"\nCleaned up temp directory.")
 
 
-def _sort_inbox(inbox):
+def _sort_inbox(inbox, dataroom):
     files = sorted(
         f for f in os.listdir(inbox)
         if os.path.isfile(os.path.join(inbox, f)) and not f.startswith(".")
@@ -301,7 +317,7 @@ def _sort_inbox(inbox):
         print(f"  {f}  ({len(text)} chars)")
 
     manifest = json.load(open(MANIFEST_PATH))
-    checklist = load_checklist()
+    checklist = load_checklist(dataroom)
 
     # Single classification call
     prompt = build_prompt(files_info, manifest["docs"])
@@ -318,7 +334,7 @@ def _sort_inbox(inbox):
     class_map = {c["filename"]: c for c in classifications}
 
     # Process each file
-    needs_review_dir = os.path.join(DATAROOM, "NEEDS_REVIEW")
+    needs_review_dir = os.path.join(dataroom, "NEEDS_REVIEW")
     summary = []
 
     for filename in files:
@@ -332,7 +348,7 @@ def _sort_inbox(inbox):
         if kind == "MATCH" and doc_name and owner:
             folder = find_folder(checklist, doc_name, owner)
             if folder:
-                dest_dir = os.path.join(DATAROOM, folder)
+                dest_dir = os.path.join(dataroom, folder)
                 dest = os.path.join(dest_dir, std_filename(doc_name, owner, ext))
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.move(src, dest)
@@ -351,7 +367,7 @@ def _sort_inbox(inbox):
         elif kind == "DRAFT" and doc_name:
             folder = find_drafts_folder(checklist, doc_name)
             if folder:
-                dest_dir = os.path.join(DATAROOM, folder)
+                dest_dir = os.path.join(dataroom, folder)
                 dest = os.path.join(dest_dir, std_filename(doc_name, "DRAFT", ext))
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.move(src, dest)
@@ -368,7 +384,7 @@ def _sort_inbox(inbox):
 
     # Recompute totals and write checklist
     checklist = recompute_totals(checklist)
-    write_checklist(checklist)
+    write_checklist(checklist, dataroom)
 
     # Print summary table
     matched = sum(1 for _, _, d in summary if "NEEDS_REVIEW" not in d and "Drafts" not in d)

@@ -2,8 +2,11 @@
 """T3 — Folder tree + checklist.
 
 Reads output/manifest.json, creates a numbered folder tree under
-output/dataroom/, and writes output/dataroom/checklist.csv with every
+output/dataroom/ (or --dest), and writes checklist.csv with every
 expected document and per-subfolder expected/received/missing counts.
+
+Usage:
+    python engine/build_tree.py [--dest /path/to/dataroom]
 
 Subfolders are by DOCUMENT TYPE (not by owner).  Files inside are
 named "{Doc Name} - {Owner}.pdf" for scoped docs, or "{Doc Name}.pdf"
@@ -15,6 +18,7 @@ Principal Loan Documents get a special "Drafts / Executed" split:
 Both contain identical doc-type subfolders.
 """
 
+import argparse
 import csv
 import json
 import os
@@ -22,7 +26,7 @@ import shutil
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(ROOT, "output")
-DATAROOM = os.path.join(OUTPUT_DIR, "dataroom")
+DEFAULT_DATAROOM = os.path.join(OUTPUT_DIR, "dataroom")
 
 
 def load_manifest():
@@ -125,19 +129,19 @@ def build_folder_plan(docs):
     return dirs_to_create, checklist_rows
 
 
-def create_tree(dirs_to_create):
+def create_tree(dirs_to_create, dataroom):
     """Create the folder tree on disk."""
-    if os.path.exists(DATAROOM):
-        shutil.rmtree(DATAROOM)
-    os.makedirs(DATAROOM)
+    if os.path.exists(dataroom):
+        shutil.rmtree(dataroom)
+    os.makedirs(dataroom)
 
     for d in sorted(dirs_to_create):
-        os.makedirs(os.path.join(DATAROOM, d), exist_ok=True)
+        os.makedirs(os.path.join(dataroom, d), exist_ok=True)
 
 
-def write_checklist(checklist_rows):
+def write_checklist(checklist_rows, dataroom):
     """Write checklist.csv with doc rows and per-subfolder summary rows."""
-    csv_path = os.path.join(DATAROOM, "checklist.csv")
+    csv_path = os.path.join(dataroom, "checklist.csv")
 
     # Group rows by folder for summary totals
     folder_groups = []
@@ -182,13 +186,13 @@ def write_checklist(checklist_rows):
     return csv_path
 
 
-def print_tree():
+def print_tree(dataroom):
     """Print the tree from the filesystem."""
-    print("\noutput/dataroom/")
+    print(f"\n{dataroom}/")
     all_dirs = []
-    for dirpath, dirnames, _ in os.walk(DATAROOM):
+    for dirpath, dirnames, _ in os.walk(dataroom):
         dirnames.sort()
-        rel = os.path.relpath(dirpath, DATAROOM)
+        rel = os.path.relpath(dirpath, dataroom)
         if rel == ".":
             continue
         all_dirs.append(rel)
@@ -207,18 +211,29 @@ def print_tree():
         print(f"{indent}{connector}{name}/")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Build data room folder tree")
+    parser.add_argument("--dest", default=DEFAULT_DATAROOM,
+                        help="Destination path for the data room "
+                             f"(default: {DEFAULT_DATAROOM})")
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+    dataroom = os.path.abspath(args.dest)
+
     manifest = load_manifest()
     dirs_to_create, checklist_rows = build_folder_plan(manifest["docs"])
-    create_tree(dirs_to_create)
-    csv_path = write_checklist(checklist_rows)
+    create_tree(dirs_to_create, dataroom)
+    csv_path = write_checklist(checklist_rows, dataroom)
 
     dir_count = len(dirs_to_create)
     doc_count = len(checklist_rows)
-    print(f"Created {dir_count} directories under output/dataroom/")
+    print(f"Created {dir_count} directories under {dataroom}/")
     print(f"Wrote {csv_path}")
     print(f"Checklist: {doc_count} expected docs, all missing")
-    print_tree()
+    print_tree(dataroom)
 
 
 if __name__ == "__main__":

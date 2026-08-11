@@ -15,8 +15,12 @@ Routing rules (who gets chased for what):
     drafting items prepared by lender's counsel
 
 No LLM calls — plain templating from checklist data.
+
+Usage:
+    python engine/report.py [--dest /path/to/dataroom]
 """
 
+import argparse
 import csv
 import json
 import os
@@ -25,8 +29,7 @@ from collections import OrderedDict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(ROOT, "output")
-DATAROOM = os.path.join(OUTPUT_DIR, "dataroom")
-CHECKLIST_PATH = os.path.join(DATAROOM, "checklist.csv")
+DEFAULT_DATAROOM = os.path.join(OUTPUT_DIR, "dataroom")
 DEAL_PROFILE_PATH = os.path.join(OUTPUT_DIR, "deal_profile.json")
 EMAILS_DIR = os.path.join(OUTPUT_DIR, "emails")
 
@@ -59,9 +62,9 @@ def route_party(row):
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
-def load_checklist():
+def load_checklist(dataroom):
     rows = []
-    with open(CHECKLIST_PATH, newline="") as f:
+    with open(os.path.join(dataroom, "checklist.csv"), newline="") as f:
         for row in csv.DictReader(f):
             if row["doc_name"] != "--- SUBFOLDER TOTAL ---":
                 rows.append(row)
@@ -242,11 +245,19 @@ def safe_filename(party):
 # ── Main ─────────────────────────────────────────────────────────────
 
 def main():
-    if not os.path.exists(CHECKLIST_PATH):
-        print(f"Checklist not found: {CHECKLIST_PATH}", file=sys.stderr)
+    parser = argparse.ArgumentParser(description="Missing-document report")
+    parser.add_argument("--dest", default=DEFAULT_DATAROOM,
+                        help="Data room path to read checklist from "
+                             f"(default: {DEFAULT_DATAROOM})")
+    args = parser.parse_args()
+    dataroom = os.path.abspath(args.dest)
+
+    checklist_path = os.path.join(dataroom, "checklist.csv")
+    if not os.path.exists(checklist_path):
+        print(f"Checklist not found: {checklist_path}", file=sys.stderr)
         sys.exit(1)
 
-    checklist = load_checklist()
+    checklist = load_checklist(dataroom)
     profile = load_deal_profile()
 
     missing = [r for r in checklist if r["status"] == "missing"]

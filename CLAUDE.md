@@ -33,10 +33,10 @@ Deal types outside the library → build a best-guess skeleton and flag UNKNOWN_
 0. `parse_deal.py` — PDF → deal_profile.json via `claude -p` headless mode (strict JSON out, no prose; NO direct Anthropic API calls)
 1. `rules/` library — one JSON/YAML per deal type defining expected docs by scope (per-entity / per-asset / per-deal)
 2. `rules.py` — profile + rules library → manifest of every expected document, counts COMPUTED from the profile
-3. `build_tree.py` — manifest → numbered local folder tree + checklist.csv (expected/received/missing)
-4. `sort_inbox.py` — files or zip dropped in `inbox/` get classified (filename + first-page text via `claude -p` headless mode; NO direct Anthropic API calls) against the manifest, moved into place, checklist updated; unclassifiable → NEEDS_REVIEW, never guess silently
-5. `report.py` — missing-doc report grouped by responsible party + one draft chaser email per party
-6. Google Drive mirror (Drive API) — only after local works end to end
+3. `build_tree.py` — manifest → numbered folder tree + checklist.csv (expected/received/missing). Supports `--dest /path` to build at an arbitrary location (default: `output/dataroom/`).
+4. `sort_inbox.py` — files or zip dropped in `inbox/` get classified (filename + first-page text via `claude -p` headless mode; NO direct Anthropic API calls) against the manifest, moved into place, checklist updated; unclassifiable → NEEDS_REVIEW, never guess silently. Supports `--dest /path` to target an arbitrary data room location.
+5. `report.py` — missing-doc report grouped by responsible party + one draft chaser email per party. Supports `--dest /path` to read checklist from an arbitrary data room.
+6. Google Drive delivery — no OAuth / Drive API needed. Use `--dest` to point `build_tree.py` and `sort_inbox.py` at a Google Drive for Desktop synced folder (e.g. `--dest ~/Library/CloudStorage/GoogleDrive-.../My Drive/Meridian Data Room`). Drive desktop client syncs the files automatically.
 
 ## Working rules
 - One task at a time from TASKS.md, each with a done-condition. Verify, then commit before the next.
