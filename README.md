@@ -1,34 +1,63 @@
 # DealRoom
 
-AI-powered closing data room generator.
+## The problem
 
-Reads a term sheet PDF, extracts the deal profile (deal type, assets, borrowers, guarantors), and builds a deal-type-appropriate folder structure with an expected-documents checklist. Drop documents into the inbox — they get classified and filed automatically. Missing documents are flagged with draft chaser emails.
+Closing data rooms are assembled by hand. An associate creates 40+ folders, renames hundreds of files, and manually tracks what's arrived and what's missing across dozens of counterparties. When documents come in as `scan_0042.pdf` or `attachment_final_v2.pdf`, someone has to open each one, figure out what it is, and put it in the right place. The result: hours of filing, stale checklists, and chaser emails that go out late because nobody had a clean view of what was outstanding.
 
-## Pipeline
+## What this does
 
-1. **Parse** — PDF term sheet → `deal_profile.json` (via Claude API)
-2. **Rules** — deal profile + rules library → document manifest
-3. **Build** — manifest → numbered folder tree + `checklist.csv`
-4. **Sort** — inbox files classified and filed against the manifest
-5. **Report** — missing-doc report + draft chaser emails by responsible party
+DealRoom reads a term sheet and builds a complete, self-auditing closing data room — no manual setup.
 
-## Project structure
+1. **Term sheet PDF in** — the LLM extracts a structured deal profile: deal type, borrower, guarantors, assets, lender, facility features
+2. **Rules engine fires** — selects the matching deal-type taxonomy and computes every expected document (72 for this deal, derived from the profile, not hardcoded)
+3. **Folder tree built** — numbered categories and doc-type subfolders created directly in Google Drive (or any local path) with a `checklist.csv` tracking every expected item
+4. **Documents dropped in** — a messy zip of files gets extracted; every file is read, classified against the manifest by content, filed into the correct folder, and renamed to a standard convention
+5. **Checklist updates live** — received/missing counts recompute automatically as documents are filed
+6. **Missing-doc report generated** — outstanding items grouped by responsible party (borrower's counsel, third-party vendors, internal drafting) with a draft chaser email per party, ready to send
 
-```
-intake/    — input term sheets / deal documents (PDFs)
-rules/     — one JSON per deal type defining expected documents
-engine/    — pipeline scripts (parse, rules, build, sort, report)
-inbox/     — drop zone for incoming documents to be classified
-output/    — generated data room, checklist, emails (gitignored)
-```
+![Data room folder tree in Google Drive](screenshots/drive-tree.png)
+*The full data room tree built directly into Google Drive from a single term sheet.*
 
-## Usage
+## Demo results
+
+Starting from 22 test files (a realistic mix of clean and messy uploads):
+
+| Outcome | Count | Details |
+|---------|-------|---------|
+| Filed correctly | 20 | Matched to the right folder and renamed |
+| Classified by content | 5 of 20 | Files like `scan_0042.pdf`, `doc(3).pdf`, `IMG_20240815.pdf` — meaningless filenames, identified from the document text |
+| Draft routed | 1 | Lender's redline of the Loan Agreement sent to `4.1 Drafts/` without ticking the executed checklist |
+| Flagged for review | 1 | A lunch menu (decoy) caught and moved to `NEEDS_REVIEW/` |
+
+![Appraisals filed with standardized names](screenshots/sorted-appraisals.png)
+*Two appraisals filed and renamed: the originals were `Appraisal_Oakline_Commons.pdf` and `Appraisal_Brazos_Bend.pdf`.*
+
+![Checklist with received/missing tracking](screenshots/checklist.png)
+*The checklist after sorting — 20 received, 52 missing, per-subfolder totals computed automatically.*
+
+![NEEDS_REVIEW folder with flagged file](screenshots/needs-review.png)
+*Files the system can't confidently identify are flagged for human review, never silently misfiled.*
+
+## Why this matters
+
+Lawyers should audit what models produce, not do the busywork models are good at. Filing, renaming, and tracking documents against a checklist is mechanical — the value is in knowing what's missing and chasing it down. DealRoom handles the organization so the closing team can focus on the substance: reviewing documents, catching issues, and getting to signing.
+
+## Roadmap
+
+- **Term-sheet variety testing** — unsecured term loans, revolvers, construction loans, subscription lines
+- **Drafting from precedent** — generate first-draft loan documents from extracted deal terms + a precedent library
+- **VDR export packages** — numbered zip + index sheet formatted for Intralinks/Datasite upload
+- **Email intake** — documents arriving by email filed automatically
+- **Hosted/secured productization** — auth, encryption at rest, audit logging, SOC 2
+
+## Run the demo
 
 ```bash
-export ANTHROPIC_API_KEY=sk-...
-python engine/parse_deal.py intake/term_sheet.pdf
-python engine/rules.py
-python engine/build_tree.py
-python engine/sort_inbox.py
-python engine/report.py
+./demo.sh
 ```
+
+Resets the data room, regenerates 22 test documents, zips them, sorts the zip, and prints the missing-document report. Requires Python 3.9+ and `pypdf` (`pip install pypdf`).
+
+## Built with
+
+Built in roughly a day with [Claude Code](https://claude.ai/claude-code). All deal data is fictional — no real term sheets, no real client documents.
