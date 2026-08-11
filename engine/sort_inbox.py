@@ -197,12 +197,19 @@ def find_folder(checklist, doc_name, owner):
 
 
 def find_drafts_folder(checklist, doc_name):
-    """Derive the Drafts path from the Executed path for the same doc."""
+    """Derive the Drafts path from the Executed path for the same doc.
+
+    Checklist paths use "N.2 Executed"; the matching Drafts folder is
+    "N.1 Drafts".  A simple .replace("Executed","Drafts") would produce
+    "N.2 Drafts" which is wrong.
+    """
+    import re
     for row in checklist:
         if (row["doc_name"] == doc_name
                 and "Executed" in row.get("folder", "")
                 and row["doc_name"] != "--- SUBFOLDER TOTAL ---"):
-            return row["folder"].replace("Executed", "Drafts")
+            return re.sub(r'(\d+)\.2 Executed', r'\1.1 Drafts',
+                          row["folder"])
     return None
 
 
